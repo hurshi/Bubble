@@ -268,14 +268,12 @@ public class WiFiConnectionActivity extends Activity implements OnClickListener,
 			byte[] readBuf = (byte[]) msg.obj;
 			String readMessage = new String(readBuf, 0, msg.arg1);
 			// float data;
-			// Log.i("接收到得数据:", readMessage);
 			// if (readMessage.length() > 6) {
 			// data = 0;
 			// } else {
 			// data = Float.parseFloat(readMessage);
 			// }
-			DataManage.getInstance().dataUtils(readMessage);
-			readMessage = "";
+			DataManage.getInstance().setData(readMessage);
 			break;
 
 		case MY_HANDLE:

@@ -10,7 +10,8 @@ import java.io.OutputStream;
 import java.net.Socket;
 
 /**
- * Handles reading and writing of messages with socket buffers. Uses a Handler to post messages to UI thread for UI updates.
+ * Handles reading and writing of messages with socket buffers. Uses a Handler
+ * to post messages to UI thread for UI updates.
  */
 public class ChatManager implements Runnable {
 
@@ -43,7 +44,9 @@ public class ChatManager implements Runnable {
 					if (bytes == -1) {
 						break;
 					}
+
 					// Send the obtained bytes to the UI Activity
+					Log.d(TAG, "Rec:" + String.valueOf(buffer));
 					handler.obtainMessage(WiFiConnectionActivity.MESSAGE_READ, bytes, -1, buffer).sendToTarget();
 				} catch (IOException e) {
 					Log.e(TAG, "disconnected", e);

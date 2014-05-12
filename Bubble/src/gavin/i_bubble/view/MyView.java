@@ -7,6 +7,7 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Matrix;
+import android.graphics.Paint;
 import android.graphics.RectF;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
@@ -18,13 +19,15 @@ public class MyView extends SurfaceView implements SurfaceHolder.Callback {
 	public float blow_Me;
 	public float blow_Other;
 
-	private Bitmap background, wood;
-	private int ScreenH;
-	private int ScreenW;
+	private Bitmap background, wood, duck;
+	private int height;
+	private int width;
 	private int woodHeight;
 	private int woodWidth;
+	private int duckHeight;
 	private float x1, y1, x2, y2;
 	private boolean isGroupOwner;
+	private int t = 1;
 
 	private volatile static MyView uniqueInstance;
 
@@ -37,16 +40,21 @@ public class MyView extends SurfaceView implements SurfaceHolder.Callback {
 		isRun = true;
 		background = BitmapFactory.decodeResource(getResources(), R.drawable.background);
 		wood = BitmapFactory.decodeResource(getResources(), R.drawable.wood);
+		duck = BitmapFactory.decodeResource(getResources(), R.drawable.duck);
 		isGroupOwner = ChatManagerUtil.getInstance().getIsGourpOwner();
-		ScreenW = getWidth();
-		ScreenH = getHeight();
+		// isStartFlop = true;
+		// startFlopTime = System.currentTimeMillis();
+
+		width = getWidth();
+		height = getHeight();
 		woodWidth = wood.getWidth();
 		woodHeight = wood.getHeight();
-		x1 = 0;
-		x2 = ScreenW;
-		y1 = ScreenH - woodHeight;
-		y2 = ScreenH = woodHeight;
+		duckHeight = duck.getHeight();
 
+		x1 = 0;
+		x2 = width;
+		y1 = height - woodHeight;
+		y2 = height = woodHeight;
 	}
 
 	public static MyView getInstance(Context context) {
@@ -70,44 +78,54 @@ public class MyView extends SurfaceView implements SurfaceHolder.Callback {
 	public void surfaceCreated(SurfaceHolder holder) {
 		Thread MyThread = new Thread() {
 			public void run() {
-				ScreenW = getWidth();
-				ScreenH = getHeight();
+				width = getWidth();
+				height = getHeight();
 				woodWidth = wood.getWidth();
 				woodHeight = wood.getHeight();
 
 				x1 = 0;
-				x2 = ScreenW;
-				y1 = ScreenH - woodHeight;
-				y2 = ScreenH;
+				x2 = width;
+				y1 = height - woodHeight;
+				y2 = height;
 
 				while (isRun) {
 					Canvas c = sh.lockCanvas();
-					// 反锯齿
-					// c.setDrawFilter(new PaintFlagsDrawFilter(0,
-					// Paint.ANTI_ALIAS_FLAG | Paint.FILTER_BITMAP_FLAG));
+					// c.setDrawFilter(new PaintFlagsDrawFilter(0, Paint.ANTI_ALIAS_FLAG | Paint.FILTER_BITMAP_FLAG));
 
-					// Paint paint = new Paint();
-					// paint.setAntiAlias(true);// 反锯齿
+					Paint paint = new Paint();
+					// paint.setAntiAlias(true);
 					// paint.setFilterBitmap(true);
 					// paint.setColor(Color.RED);// 设置红色
 					// paint.setStrokeWidth(5.0f);
 
-					// int width = getWidth();
-					// int height = getHeight();
-					c.drawBitmap(background, null, new RectF(0, 0, ScreenW, ScreenH), null); // 画背景
-
-					if ((blow_Me > 5000) && (y1 >= 0)) {
-						y1 -= 3;
-					} else if (y1 <= ScreenH) {
-						y1 += 1;
+					int width = getWidth();
+					int height = getHeight();
+					c.drawBitmap(background, null, new RectF(0, 0, width, height), null); // 画背景
+					if ((y1 > 0) && (y1 <= height)) {
+						if (blow_Me > 5000) {
+							y1 -= 8;
+							t = 1;
+						} else {
+							y1 += 3.0f / 2.0f * 1.0f / 5.0f * t * t;
+							t++;
+						}
 					}
+					if (y1 < 0) {
+						y1 = 0;
+					} else if (y1 > height) {
+						y1 = height;
+					}
+
 					ChatManagerUtil.getInstance().getChatManager().write((y1 + "").getBytes());// 发送数据
 					y2 = blow_Other;
-					drawWoods(isGroupOwner, c, x1, y1, x2, y2);
+
+					drawWoodAndDuck(isGroupOwner, c, paint, x1, y1, x2, y2);
+
 					sh.unlockCanvasAndPost(c);
 					try {
-						Thread.sleep(10);
+						Thread.sleep(30);
 					} catch (InterruptedException e) {
+						// TODO Auto-generated catch block
 						e.printStackTrace();
 					}
 				}
@@ -120,7 +138,7 @@ public class MyView extends SurfaceView implements SurfaceHolder.Callback {
 		isRun = false;
 	}
 
-	private void drawWoods(boolean isGroupOwner, Canvas c, float x1, float y1, float x2, float y2) {
+	private void drawWoodAndDuck(boolean isGroupOwner, Canvas c, Paint p, float x1, float y1, float x2, float y2) {
 		if (!isGroupOwner) {
 			y1 = y1 + y2;
 			y2 = y1 - y2;
@@ -132,13 +150,26 @@ public class MyView extends SurfaceView implements SurfaceHolder.Callback {
 		matrix.postScale(1f, 1f);
 		// 向左旋转45度，参数为正则向右旋转
 		matrix.postRotate((float) mAngle);
-		// bmp.getWidth(), 500分别表示重绘后的位图宽高
-		Bitmap dstbmp = Bitmap.createBitmap(wood, 0, 0, wood.getWidth(), wood.getHeight(), matrix, false);
-		float positionY = (y1 + y2 - dstbmp.getHeight()) / 2;
-		float positionX = getWidth() / 2 - dstbmp.getWidth() / 2;
-		// 在画布上绘制旋转后的位图
-		// 放在坐标为0,200的位置
-		c.drawBitmap(dstbmp, positionX, positionY, null);
+		Bitmap woodBmp = Bitmap.createBitmap(wood, 0, 0, wood.getWidth(), wood.getHeight(), matrix, true);
+		Bitmap duckBmp = Bitmap.createBitmap(duck, 0, 0, duck.getWidth(), duck.getHeight(), matrix, true);
+
+		drawWood(c, p, y1, y2, woodBmp);
+		drawDuck(c, p, y1, y2, duckBmp, mAngle);
+
+	}
+
+	private void drawWood(Canvas c, Paint p, float y1, float y2, Bitmap bmp) {
+		float positionY = (y1 + y2 - bmp.getHeight()) / 2;
+		float positionX = getWidth() / 2 - bmp.getWidth() / 2;
+		c.drawBitmap(bmp, positionX, positionY, p);
+	}
+
+	private void drawDuck(Canvas c, Paint p, float y1, float y2, Bitmap bmp, double angle) {
+		float positionY = (y1 + y2 - bmp.getHeight()) / 2;
+		positionY -= (woodHeight + duckHeight) / (2);
+		float positionX = getWidth() / 2 - bmp.getWidth() / 2;
+		c.drawBitmap(bmp, positionX, positionY, p);
+
 	}
 
 }

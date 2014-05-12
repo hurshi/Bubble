@@ -51,7 +51,7 @@ public class WiFiChatFragment extends Fragment implements OnClickListener {
 			// 刷新自己的数据
 			// chatManager.write(str.getBytes());// 发送数据
 			// PlayingGameActivity.startActivity(getActivity());
-			PlayingGameFragment playGameFragment = PlayingGameFragment.getInstance();
+			PlayingGameFragment playGameFragment = new PlayingGameFragment();
 			getActivity().getFragmentManager().beginTransaction().replace(R.id.container_root, playGameFragment).commit();
 
 		}

@@ -1,15 +1,10 @@
 package gavin.i_bubble.manager;
 
 import android.util.Log;
-import gavin.i_bubble.utils.ChatManagerUtil;
-import gavin.i_bubble.view.GameView;
-import gavin.i_bubble.view.PlayingGameFragment;
+import gavin.i_bubble.view.MyView;
 
 public class DataManage {
-	private float dataY = 200;
-	private float yPosition = 400;
-	private float mAngle = 0;
-	private String message = "";
+	private float dataY;
 
 	private volatile static DataManage uniqueInstance;
 
@@ -24,45 +19,20 @@ public class DataManage {
 		return uniqueInstance;
 	}
 
-	private int length = 7;
-
-	private void setData(String readMessage) {
-		if (readMessage.length() > 7) {
-			length = 7;
-		} else {
-			length = readMessage.length() - 1;
-		}
+	public void setData(String readMessage) {
 		try {
-			this.message = readMessage;
-			if (readMessage.charAt(0) == 'a') {
-				this.mAngle = Float.parseFloat(message.substring(1, length));
-			} else if (readMessage.charAt(0) == 'y') {
-				this.yPosition = Float.parseFloat(message.substring(1, length));
-			} else if (readMessage.charAt(0) == 'c') {
-				this.dataY = Float.parseFloat(message.substring(1, length));
-			}
-			message = "";
-			update();
+			this.dataY = Float.parseFloat(readMessage);
 		} catch (Exception e) {
-			Log.e("DataManage异常", e + "");
+			Log.i("DataManage Exception:", "" + e);
 		}
-	}
-
-	public void dataUtils(String readMessage) {
-		String[] result = readMessage.split("#");
-		for (int i = 0; i < result.length; i++) {
-			setData(result[i]);
-		}
+		update();
 	}
 
 	public void update() {
-		if (ChatManagerUtil.getInstance().getIsGourpOwner()) {// 如果是服务器，接收客户机传过来的数据
-			if (dataY > 5000) {
-				PlayingGameFragment.getInstance().setOtherBlowed(dataY);
-			}
-		} else {// 如果是客户机，接收服务器传过来的坐标位置以及角度
-			GameView.getView().setYPosition(yPosition);
-			GameView.getView().setAngle(mAngle);
+		try {
+			MyView.getView().blow_Other = dataY;
+		} catch (Exception e) {
+			Log.i("DataManage:", e + "");
 		}
 	}
 
