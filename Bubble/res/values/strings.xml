@@ -1,0 +1,8 @@
+<resources>
+
+    <string name="app_name">I.Bubble</string>
+    <string name="finding_service">Finding local services</string>
+    <string name="btn_start_game">开始游戏</string>
+    <string name="txt_hint">Type Message</string>
+
+</resources>
